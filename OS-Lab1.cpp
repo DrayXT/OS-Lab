@@ -1,4 +1,4 @@
-﻿#include <iostream>
+#include <iostream>
 #include <mutex>
 
 using namespace std;
@@ -6,8 +6,8 @@ using namespace std;
 class Monitor
 {
     mutex mtx;
-    condition_variable cv;
-    bool event_ready = false;
+    condition_variable cv_producer, cv_consumer;
+    bool event_ready = false, event_processed = true;
     int event_id = 0;
 
 public:
@@ -17,10 +17,12 @@ public:
         {
             this_thread::sleep_for(chrono::seconds(1));
             unique_lock<mutex> lock(mtx);
-            event_ready = true;
+            cv_producer.wait(lock, [this] { return event_processed; });
             ++event_id;
+            event_ready = true;
+            event_processed = false;
             cout << "Producer sent event " << event_id << endl;
-            cv.notify_one();
+            cv_consumer.notify_one();
         }
     }
 
@@ -29,9 +31,11 @@ public:
         while (true)
         {
             unique_lock<mutex> lock(mtx);
-            cv.wait(lock, [this] { return event_ready; });
+            cv_consumer.wait(lock, [this] { return event_ready; });
             cout << "Consumer received event " << event_id << endl << endl;
+            event_processed = true;
             event_ready = false;
+            cv_producer.notify_one();
         }
     }
 };
