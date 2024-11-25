@@ -15,12 +15,12 @@ public:
     {
         while (true)
         {
-            this_thread::sleep_for(chrono::seconds(1)); // Задержка в 1 секунду
+            this_thread::sleep_for(chrono::seconds(1));
             unique_lock<mutex> lock(mtx);
             event_ready = true;
             ++event_id;
             cout << "Producer sent event " << event_id << endl;
-            cv.notify_one(); // Уведомление потребителя
+            cv.notify_one();
         }
     }
 
@@ -29,7 +29,7 @@ public:
         while (true)
         {
             unique_lock<mutex> lock(mtx);
-            cv.wait(lock, [this] { return event_ready; }); // Ожидание события
+            cv.wait(lock, [this] { return event_ready; });
             cout << "Consumer received event " << event_id << endl << endl;
             event_ready = false;
         }
@@ -43,7 +43,6 @@ void main()
     thread producer(&Monitor::producerEvent, &monitor);
     thread consumer(&Monitor::consumerEvent, &monitor);
 
-    // Ожидание завершения потоков
     producer.join();
     consumer.join();
 }
