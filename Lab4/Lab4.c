@@ -21,7 +21,7 @@ static ssize_t read(struct file* file, char __user* buf, size_t count, loff_t* p
 
     long distance_km = 149597871;
     int lightspeed_km_s = 299793;
-    int seconds_s = (39 * 60 + 18) * 60 + 16;
+    int seconds_s = (38 * 60 + 42) * 60 + 16;
     double result_s = distance_km / lightspeed_km_s;
     int fresult = seconds_s / (2 * result_s);
 
