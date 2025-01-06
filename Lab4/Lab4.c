@@ -3,6 +3,7 @@
 #include <linux/init.h>
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
+#include <linux/time.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Tomsk State University");
@@ -10,20 +11,40 @@ MODULE_DESCRIPTION("Simple kernel module example");
 
 #define PROC_FILE_NAME "Lab4"
 
-static struct proc_dir_entry* proc_file;
+static struct proc_dir_entry *proc_file;
 
-static ssize_t read(struct file* file, char __user* buf, size_t count, loff_t* pos)
+static ssize_t read(struct file *file, char __user *buf, size_t count, loff_t *pos)
 {
-    char message[512];
+    struct timespec64 ts;
+    struct tm tm;
+    char message[128];
     int len;
 
     if (*pos > 0) return 0;
 
+    ktime_get_real_ts64(&ts);
+    extern struct timezone sys_tz;
+    sys_tz.tz_minuteswest = 420;
+    time64_to_tm(ts.tv_sec + sys_tz.tz_minuteswest * 60, 0, &tm);
+
+    unsigned int year = tm.tm_year + 1900;
+    unsigned int month = tm.tm_mon;
+    unsigned int day = tm.tm_mday;
+    unsigned int hour = tm.tm_hour;
+    unsigned int minute = tm.tm_min;
+    unsigned int second = tm.tm_sec;
+
+    int days[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) days[1] = 29;
+    unsigned int rday = days[month] - 1 - day;
+    unsigned int rhour = 24 * rday - 1 - hour;
+    unsigned int rminute = 60 * rhour - 1 - minute;
+    unsigned int rsecond = 60 * rminute - second;
+
     long distance_km = 149597871;
     int lightspeed_km_s = 299793;
-    int seconds_s = (38 * 60 + 42) * 60 + 16;
-    double result_s = distance_km / lightspeed_km_s;
-    int fresult = seconds_s / (2 * result_s);
+    int timetotravel_s = distance_km / lightspeed_km_s;
+    int fresult = rsecond / (timetotravel_s + timetotravel_s);
 
     len = snprintf(message, sizeof(message), "Light can travel from the Sun to the Earth and back %d times till the end of the month \n", fresult);
 
