@@ -43,8 +43,8 @@ static ssize_t read(struct file *file, char __user *buf, size_t count, loff_t *p
 
     long distance_km = 149597871;
     int lightspeed_km_s = 299793;
-    int timetotravel_s = distance_km / lightspeed_km_s;
-    int fresult = rsecond / (timetotravel_s + timetotravel_s);
+    int timefortravel_s = distance_km / lightspeed_km_s;
+    int fresult = rsecond / (timefortravel_s + timefortravel_s);
 
     len = snprintf(message, sizeof(message), "Light can travel from the Sun to the Earth and back %d times till the end of the month \n", fresult);
 
